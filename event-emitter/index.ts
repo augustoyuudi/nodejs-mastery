@@ -1,22 +1,14 @@
 import { EventEmitter } from 'node:events';
 
+EventEmitter.captureRejections = true;
 const eventEmitter = new EventEmitter();
 
-eventEmitter.on('my-event', () => {
-  process.nextTick(() => {
-    console.log('my event occurred!');
-  });
+eventEmitter.on('my-event', async () => {
+  throw new Error('kaboom');
 });
 
-eventEmitter.on('new-event', () => {
-  console.log('new event');
-});
-
-eventEmitter.on('error', (err) => {
-  console.log('An error occurred.');
-  console.log(err)
+eventEmitter.on('error', (err: Error) => {
+  console.log(`An error occurred: ${err.message}`);
 });
 
 eventEmitter.emit('my-event');
-eventEmitter.emit('new-event');
-eventEmitter.emit('error', new Error('fucked up'));
