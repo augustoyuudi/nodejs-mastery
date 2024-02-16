@@ -2,11 +2,15 @@ import { EventEmitter } from 'node:events';
 
 const eventEmitter = new EventEmitter();
 
-eventEmitter.on('my-event', function(this: typeof EventEmitter, a, b) {
-  console.log(a);
-  console.log(b);
-  console.log(this);
-  console.log('my event occurred!');
+eventEmitter.on('my-event', () => {
+  process.nextTick(() => {
+    console.log('my event occurred!');
+  });
 });
 
-eventEmitter.emit('my-event', 10, 'hello');
+eventEmitter.on('new-event', () => {
+  console.log('new event');
+});
+
+eventEmitter.emit('my-event');
+eventEmitter.emit('new-event');
