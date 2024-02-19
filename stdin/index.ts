@@ -1,16 +1,19 @@
-import * as readline from 'node:readline/promises';
+// import * as readline from 'node:readline/promises';
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false
-});
+// const rl = readline.createInterface({
+//   input: process.stdin,
+//   output: process.stdout,
+//   terminal: false
+// });
 
 async function main() {
-  const answ = await rl.question("Give me your phone number: ");
-  console.log(answ);
+  const data = process.argv[2];
 
-  rl.close();
+  console.log(data);
+  // const answ = await rl.question("Give me your phone number: ");
+  // console.log(answ);
+
+  // rl.close();
 }
 
 main();
