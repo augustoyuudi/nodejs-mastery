@@ -1,5 +1,10 @@
 import express from 'express';
-import { spawn } from 'node:child_process';
+import { spawn, fork } from 'node:child_process';
+
+export type IsPrimeMessage = {
+  number: number
+}
+
 const app = express();
 
 app.get("/ls", (req, res) => {
@@ -17,6 +22,18 @@ app.get("/ls", (req, res) => {
     console.log(`child process exited with code ${code}`);
     res.end() //finally all the written streams are send back when the subprocess exit
   });
+});
+
+app.get("/is-prime", (req, res) => {
+  const childProcess = fork("./dist/isPrime.js");
+  childProcess.send({ number: req.query.number });
+  childProcess.on("message", message => {
+    res.json(message);
+  });
+});
+
+app.get("test", (req, res) => {
+  res.send("Working...");
 });
 
 app.listen(7000, () => console.log("listening on port 7000"));

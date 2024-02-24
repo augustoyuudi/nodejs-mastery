@@ -1,0 +1,7 @@
+In Node.js, while asynchronous operations can improve the concurrency of your program, CPU-intensive tasks can still block the event loop and impact the overall responsiveness of your application. This is because the event loop in Node.js is single-threaded, and CPU-intensive tasks can monopolize the CPU, preventing other tasks, including I/O operations and event handling, from being processed.
+
+When you perform a CPU-intensive task in Node.js, it runs on the same thread as the event loop. As a result, other tasks, even those defined as asynchronous, are unable to run until the CPU-intensive task completes. This can lead to reduced responsiveness and throughput in your application.
+
+To mitigate this issue, you might consider offloading CPU-intensive tasks to worker threads or external processes. Node.js provides the worker_threads module for creating worker threads that can run concurrently with the main event loop. Alternatively, you could use child processes to delegate CPU-intensive tasks to separate processes.
+
+Keep in mind that the optimal solution depends on the nature of your application and the specific requirements of your CPU-intensive tasks. Always consider the trade-offs and choose an approach that aligns with your application's architecture and goals.
