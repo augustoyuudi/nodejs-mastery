@@ -8,6 +8,9 @@ dependencies:
   jest-haste-map:
     specifier: ^29.7.0
     version: 29.7.0
+  jest-worker:
+    specifier: ^29.7.0
+    version: 29.7.0
 
 packages:
 

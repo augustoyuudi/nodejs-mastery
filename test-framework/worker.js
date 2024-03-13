@@ -1,7 +1,7 @@
-import fs from 'fs';
+const fs = require('fs');
 
-export async function runTest(testFile) {
+exports.runTest = async function (testFile) {
   const code = await fs.promises.readFile(testFile, 'utf-8');
 
-  return testFile + ':\n' + code;
+  return `worker id: ${process.env.JEST_WORKER_ID}\nfile: ${testFile}:\n${code}`;
 }

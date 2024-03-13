@@ -2,16 +2,16 @@
   "name": "test-framework",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
-  "main": "index.js",
+  "main": "main.mjs",
   "scripts": {
-    "dev": "node main.js",
+    "dev": "node main.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "jest-haste-map": "^29.7.0"
+    "jest-haste-map": "^29.7.0",
+    "jest-worker": "^29.7.0"
   }
 }

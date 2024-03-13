@@ -1,8 +1,8 @@
 import HasteMap from 'jest-haste-map';
+import { Worker } from 'jest-worker';
 import { cpus } from 'os';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { runTest } from './worker.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -22,8 +22,15 @@ await hasteMap.setupCachePath(hasteMapOptions);
 const { hasteFS } = await hasteMap.build();
 const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
 
+const worker = new Worker(join(root, 'worker.js'), {
+  enableWorkerThreads: true,
+});
+
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    console.log(await runTest(testFile));
+    const testResult = await worker.runTest(testFile);
+    console.log(testResult);
   })
 );
+
+worker.end();
