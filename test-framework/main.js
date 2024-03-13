@@ -2,7 +2,7 @@ import HasteMap from 'jest-haste-map';
 import { cpus } from 'os';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { runTest } from './worker.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -24,7 +24,6 @@ const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    const code = fs.readFileSync(testFile, 'utf-8');
-    console.log(testFile + '\n' + code);
+    console.log(await runTest(testFile));
   })
 );
