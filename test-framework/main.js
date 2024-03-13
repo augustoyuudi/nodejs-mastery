@@ -7,7 +7,7 @@ import fs from 'fs';
 const root = dirname(fileURLToPath(import.meta.url));
 
 const hasteMapOptions = {
-  extensions: ['.js'],
+  extensions: ['js'],
   maxWorkers: cpus().length,
   name: 'test-framework',
   platforms: [],
@@ -21,8 +21,6 @@ await hasteMap.setupCachePath(hasteMapOptions);
 
 const { hasteFS } = await hasteMap.build();
 const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
-
-// console.log(testFiles.entries());
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
