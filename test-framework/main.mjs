@@ -1,8 +1,9 @@
 import HasteMap from 'jest-haste-map';
 import { Worker } from 'jest-worker';
 import { cpus } from 'os';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import { fileURLToPath } from 'url';
+import chalk from 'chalk';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -28,8 +29,17 @@ const worker = new Worker(join(root, 'worker.js'), {
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    const testResult = await worker.runTest(testFile);
-    console.log(testResult);
+    const { success, errorMessage } = await worker.runTest(testFile);
+
+    const status = success
+     ? chalk.green.inverse.bold(' PASS ')
+     : chalk.red.inverse.bold(' FAIL ');
+
+     console.log(`${status} ${chalk.dim(relative(root, testFile))}`);
+
+     if (!success) {
+      console.log(` ${errorMessage}`);
+     }
   })
 );
 
