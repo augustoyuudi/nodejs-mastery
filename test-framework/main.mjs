@@ -29,6 +29,8 @@ const worker = new Worker(join(root, 'worker.js'), {
   enableWorkerThreads: true,
 });
 
+let hasTestFailed = false;
+
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
     const { success, errorMessage } = await worker.runTest(testFile);
@@ -40,9 +42,18 @@ await Promise.all(
      console.log(`${status} ${chalk.dim(relative(root, testFile))}`);
 
      if (!success) {
+      hasTestFailed = true;
       console.log(` ${errorMessage}`);
      }
   })
 );
 
 worker.end();
+
+if (hasTestFailed) {
+  console.log(
+    `\n ${chalk.red.bold('Test run failed, please fix all the failing tests.')}`
+  );
+
+  process.exitCode = 1;
+}
