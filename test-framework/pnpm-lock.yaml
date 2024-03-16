@@ -14,6 +14,9 @@ dependencies:
   jest-haste-map:
     specifier: ^29.7.0
     version: 29.7.0
+  jest-mock:
+    specifier: ^29.7.0
+    version: 29.7.0
   jest-worker:
     specifier: ^29.7.0
     version: 29.7.0
@@ -325,6 +328,15 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       stack-utils: 2.0.6
+    dev: false
+
+  /jest-mock@29.7.0:
+    resolution: {integrity: sha512-ITOMZn+UkYS4ZFh83xYAOzWStloNzJFO2s8DWrE4lhtGD+AorgnbkiKERe4wQVBydIGPx059g6riW5Btp6Llnw==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    dependencies:
+      '@jest/types': 29.6.3
+      '@types/node': 20.11.25
+      jest-util: 29.7.0
     dev: false
 
   /jest-regex-util@29.6.3:
