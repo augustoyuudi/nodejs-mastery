@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { expect } = require('expect');
 const mock = require('jest-mock');
+const { describe, it, run, resetState } = require('jest-circus');
 
 exports.runTest = async function (testFile) {
   const code = await fs.promises.readFile(testFile, 'utf-8');
@@ -8,32 +9,19 @@ exports.runTest = async function (testFile) {
   const testResult = {
     success: false,
     errorMessage: null,
+    testResults: null,
   };
 
-  let testName;
-
   try {
-    const describeFns = [];
-    let currentDescribeFn = [];
-
-    const describe = (name, fn) => describeFns.push([name, fn]);
-    const it = (name, fn) => currentDescribeFn.push([name, fn]);
+    resetState();
 
     eval(code); // eval has access to the scope around
 
-    for (const [name, fn] of describeFns) {
-      currentDescribeFn = [];
-      testName = name;
-      fn();
-
-      currentDescribeFn.forEach(([name, fn]) => {
-        testName = ` ${name}`;
-        fn();
-      });
-    }
-    testResult.success = true;
+    const { testResults } = await run();
+    testResult.testResults = testResults;
+    testResult.success = testResults.every((result) => !result.errors.length);
   } catch (error) {
-    testResult.errorMessage = `${testName}: ${error.message}`;
+    testResult.errorMessage = error.message;
   }
 
   return testResult;

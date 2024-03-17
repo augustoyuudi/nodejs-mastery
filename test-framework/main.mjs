@@ -33,7 +33,7 @@ let hasTestFailed = false;
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    const { success, errorMessage } = await worker.runTest(testFile);
+    const { success, testResults, errorMessage } = await worker.runTest(testFile);
 
     const status = success
      ? chalk.green.inverse.bold(' PASS ')
@@ -43,6 +43,17 @@ await Promise.all(
 
      if (!success) {
       hasTestFailed = true;
+
+      if (testResults) {
+        testResults
+          .filter((result) => result.errors.length)
+          .forEach((result) => {
+            console.log(`${result.testPath.slice(1).join(' ')}\n${result.errors[0]}`);
+          });
+      }
+     }
+
+     if (errorMessage) {
       console.log(` ${errorMessage}`);
      }
   })
