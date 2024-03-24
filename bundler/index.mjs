@@ -1,4 +1,6 @@
 import JestHasteMap from 'jest-haste-map';
+import Resolver from 'jest-resolve';
+import { DependencyResolver } from 'jest-resolve-dependencies';
 import { cpus } from 'os';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -32,3 +34,13 @@ if (!hasteFS.exists(entryPoint)) {
 }
 
 console.log(chalk.bold(`❯ Building ${chalk.blue(options.entryPoint)}`));
+
+const resolver = new Resolver.default(moduleMap, {
+  extensions: ['.js'],
+  hasCoreModules: false,
+  rootDir: root,
+});
+
+const dependencyResolver = new DependencyResolver(resolver, hasteFS);
+
+console.log(dependencyResolver.resolve(entryPoint));
