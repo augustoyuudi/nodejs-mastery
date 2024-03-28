@@ -4,6 +4,7 @@ import { DependencyResolver } from 'jest-resolve-dependencies';
 import { cpus } from 'os';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import yargs from 'yargs';
 import chalk from 'chalk';
 
@@ -59,3 +60,16 @@ while (queue.length) {
 
 console.log(chalk.bold(`❯ Found ${chalk.blue(allFiles.size)} files`));
 console.log(Array.from(allFiles));
+
+console.log(chalk.bold('❯ Serializing bundle'));
+
+const allCode = [];
+
+await Promise.all(
+  Array.from(allFiles).map(async (file) => {
+    const code = await fs.promises.readFile(file, 'utf-8');
+    allCode.push(code);
+  })
+);
+
+console.log(allCode.join('\n'));
