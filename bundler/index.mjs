@@ -42,34 +42,60 @@ const resolver = new Resolver.default(moduleMap, {
   rootDir: root,
 });
 
-const dependencyResolver = new DependencyResolver(resolver, hasteFS);
-
-const allFiles = new Set();
+const seen = new Set();
+const modules = new Map();
 const queue = [entryPoint];
 
 while (queue.length) {
   const module = queue.shift();
 
-  if (allFiles.has(module)) {
+  if (seen.has(module)) {
     continue;
   }
 
-  allFiles.add(module);
-  queue.push(...dependencyResolver.resolve(module));
+  seen.add(module);
+
+  const dependencyMap = new Map(
+    hasteFS
+      .getDependencies(module)
+      .map((dependencyName) => [
+        dependencyName,
+        resolver.resolveModule(module, dependencyName),
+      ]),
+  );
+
+  const code = fs.readFileSync(module, 'utf-8');
+
+  // Extract the "module body", in our case everything after `module.exports =`;
+  const moduleBody = code.match(/module\.exports\s+=\s+(.*?);/)?.[1] || '';
+
+  const metadata = {
+    code: moduleBody || code,
+    dependencyMap,
+  };
+
+  modules.set(module, metadata);
+  queue.push(...dependencyMap.values());
 }
 
-console.log(chalk.bold(`❯ Found ${chalk.blue(allFiles.size)} files`));
-console.log(Array.from(allFiles));
+console.log(chalk.bold(`❯ Found ${chalk.blue(seen.size)} files`));
 
 console.log(chalk.bold('❯ Serializing bundle'));
 
-const allCode = [];
+for (const [module, metadata] of Array.from(modules).reverse()) {
+  let { code } = metadata;
 
-await Promise.all(
-  Array.from(allFiles).map(async (file) => {
-    const code = await fs.promises.readFile(file, 'utf-8');
-    allCode.push(code);
-  })
-);
+  for (const [dependencyName, dependencyPath] of metadata.dependencyMap) {
+    code = code.replace(
+      new RegExp(
+        // Escape `.` and `/`.
+        `require\\(('|")${dependencyName.replace(/[\/.]/g, '\\$&')}\\1\\)`,
+      ),
+      modules.get(dependencyPath).code,
+    );
+  }
 
-console.log(allCode.join('\n'));
+  metadata.code = code;
+}
+
+console.log(modules.get(entryPoint).code.replace(/' \+ '/g, ''));
