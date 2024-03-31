@@ -82,7 +82,7 @@ console.log(chalk.bold(`❯ Found ${chalk.blue(seen.size)} files`));
 console.log(chalk.bold('❯ Serializing bundle'));
 
 const wrapModule = (id, code) => {
-  return `define(${id}, function(module, exports, require) {${code}});`;
+  return `define(${id}, function(module, exports, require) {\n${code}});`;
 }
 
 const output = [];
@@ -109,3 +109,7 @@ output.unshift(fs.readFileSync('./require.js', 'utf-8'));
 output.push(['requireModule(0);']);
 
 console.log(output.join('\n'));
+
+if (options.output) {
+  fs.writeFileSync(options.output, output.join('\n'), 'utf-8');
+}
