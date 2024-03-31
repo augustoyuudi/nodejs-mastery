@@ -45,6 +45,7 @@ const resolver = new Resolver.default(moduleMap, {
 const seen = new Set();
 const modules = new Map();
 const queue = [entryPoint];
+let id = 0;
 
 while (queue.length) {
   const module = queue.shift();
@@ -66,11 +67,9 @@ while (queue.length) {
 
   const code = fs.readFileSync(module, 'utf-8');
 
-  // Extract the "module body", in our case everything after `module.exports =`;
-  const moduleBody = code.match(/module\.exports\s+=\s+(.*?);/)?.[1] || '';
-
   const metadata = {
-    code: moduleBody || code,
+    id: id++,
+    code,
     dependencyMap,
   };
 
@@ -82,20 +81,31 @@ console.log(chalk.bold(`❯ Found ${chalk.blue(seen.size)} files`));
 
 console.log(chalk.bold('❯ Serializing bundle'));
 
+const wrapModule = (id, code) => {
+  return `define(${id}, function(module, exports, require) {${code}});`;
+}
+
+const output = [];
+
 for (const [module, metadata] of Array.from(modules).reverse()) {
-  let { code } = metadata;
+  let { id, code } = metadata;
 
   for (const [dependencyName, dependencyPath] of metadata.dependencyMap) {
+    const dependency = modules.get(dependencyPath);
+
     code = code.replace(
       new RegExp(
-        // Escape `.` and `/`.
         `require\\(('|")${dependencyName.replace(/[\/.]/g, '\\$&')}\\1\\)`,
       ),
-      modules.get(dependencyPath).code,
+      `require(${dependency.id})`,
     );
   }
 
-  metadata.code = code;
+  output.push(wrapModule(id, code));
 }
 
-console.log(modules.get(entryPoint).code.replace(/' \+ '/g, ''));
+output.unshift(fs.readFileSync('./require.js', 'utf-8'));
+
+output.push(['requireModule(0);']);
+
+console.log(output.join('\n'));
