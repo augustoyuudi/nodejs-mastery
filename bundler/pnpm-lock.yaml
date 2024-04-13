@@ -23,6 +23,9 @@ dependencies:
   jest-resolve-dependencies:
     specifier: ^29.7.0
     version: 29.7.0
+  jest-worker:
+    specifier: ^29.7.0
+    version: 29.7.0
   yargs:
     specifier: ^17.7.2
     version: 17.7.2

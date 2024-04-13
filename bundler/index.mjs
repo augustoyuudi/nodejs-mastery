@@ -2,12 +2,20 @@ import JestHasteMap from 'jest-haste-map';
 import Resolver from 'jest-resolve';
 import { DependencyResolver } from 'jest-resolve-dependencies';
 import { transformSync } from '@babel/core';
+import { Worker } from 'jest-worker';
 import { cpus } from 'os';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import yargs from 'yargs';
 import chalk from 'chalk';
+
+const worker = new Worker(
+  join(dirname(fileURLToPath(import.meta.url)), 'worker.js'),
+  {
+    enableWorkerThreads: true,
+  },
+)
 
 const root = join(dirname(fileURLToPath(import.meta.url)), 'product');
 
@@ -91,9 +99,8 @@ const results = await Promise.all(
     .reverse()
     .map(async ([module, metadata]) => {
       let { id, code } = metadata;
-      code = transformSync(code, {
-        plugins: ['@babel/plugin-transform-modules-commonjs'],
-      }).code;
+      ({ code } = await worker.transformFile(code));
+
       for (const [dependencyName, dependencyPath] of metadata.dependencyMap) {
         const dependency = modules.get(dependencyPath);
         code = code.replace(
