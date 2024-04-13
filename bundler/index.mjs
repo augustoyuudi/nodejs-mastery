@@ -1,6 +1,7 @@
 import JestHasteMap from 'jest-haste-map';
 import Resolver from 'jest-resolve';
 import { DependencyResolver } from 'jest-resolve-dependencies';
+import { transformSync } from '@babel/core';
 import { cpus } from 'os';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -85,30 +86,34 @@ const wrapModule = (id, code) => {
   return `define(${id}, function(module, exports, require) {\n${code}});`;
 }
 
-const output = [];
+const results = await Promise.all(
+  Array.from(modules)
+    .reverse()
+    .map(async ([module, metadata]) => {
+      let { id, code } = metadata;
+      code = transformSync(code, {
+        plugins: ['@babel/plugin-transform-modules-commonjs'],
+      }).code;
+      for (const [dependencyName, dependencyPath] of metadata.dependencyMap) {
+        const dependency = modules.get(dependencyPath);
+        code = code.replace(
+          new RegExp(
+            `require\\(('|")${dependencyName.replace(/[\/.]/g, '\\$&')}\\1\\)`,
+          ),
+          `require(${dependency.id})`,
+        );
+      }
+      return wrapModule(id, code);
+    }),
+);
 
-for (const [module, metadata] of Array.from(modules).reverse()) {
-  let { id, code } = metadata;
+const output = [
+  fs.readFileSync('./require.js', 'utf8'),
+  ...results,
+  'requireModule(0);',
+].join('\n');
 
-  for (const [dependencyName, dependencyPath] of metadata.dependencyMap) {
-    const dependency = modules.get(dependencyPath);
-
-    code = code.replace(
-      new RegExp(
-        `require\\(('|")${dependencyName.replace(/[\/.]/g, '\\$&')}\\1\\)`,
-      ),
-      `require(${dependency.id})`,
-    );
-  }
-
-  output.push(wrapModule(id, code));
-}
-
-output.unshift(fs.readFileSync('./require.js', 'utf-8'));
-
-output.push(['requireModule(0);']);
-
-console.log(output.join('\n'));
+console.log(output);
 
 if (options.output) {
   fs.writeFileSync(options.output, output.join('\n'), 'utf-8');
